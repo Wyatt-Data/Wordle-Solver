@@ -80,8 +80,7 @@ Use the following numeric codes to represent Wordle’s feedback:
 - Rerun only this cell to get the next best guess
 - To **restart from scratch**, run the initialization cell below this code block to reset the word list
 
-> ⚠️ **Note**: This solver performs poorly on words with **double letters**.  
-> There’s a trick to handle those—I'll update this when I remember it.
+⚠️ **Note**: This solver performs poorly on words with **double letters**. There’s a trick to handle those—I'll update this when I remember it.
 
 ---
 
