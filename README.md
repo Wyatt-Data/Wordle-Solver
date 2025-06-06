@@ -29,7 +29,7 @@ This started with a `.txt` file of valid Wordle words and turned into a full R-b
 ## 🚀 How to Run
 
 1. Clone the repo or download the files  
-2. Open `wordle_solver.Rmd` in **RStudio**  
+2. Open `Wordle.Rmd` in **RStudio**  
 3. Update file paths if necessary  
 4. Run all code chunks to load the functions and data
 
