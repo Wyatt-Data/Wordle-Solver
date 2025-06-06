@@ -1,0 +1,250 @@
+---
+title: "Wordle"
+author: "Wyatt Williams"
+date: '2023-04-21'
+output: html_document
+---
+### Question: Can I create a program that is better at Wordle than my parents are? 
+
+### Collecting the Data
+```{r, echo=FALSE, message = FALSE}
+library(readr)
+library(mosaic)
+library(ggplot2)
+library(stringr)
+library(stringi)
+library(DT)
+library(pander)
+library(knitr)
+
+#Read in Data
+words <- read_csv("~/wordle-La.txt", col_names = "original_word", show_col_types = FALSE )
+
+kable(bind_rows(words %>% head(5), words %>% tail(5))) 
+
+#Split the words into multiple columns separated by individual letters
+words <- words %>% mutate("first_letter" = substr(words$original_word,1,1), 
+                          "second_letter" = substr(words$original_word,2,2),
+                          "third_letter" = substr(words$original_word,3,3),
+                          "fourth_letter" = substr(words$original_word,4,4),
+                          "fifth_letter" = substr(words$original_word,5,5))
+
+#Save the original data set for data protection
+words_filtered <- words
+
+# Statistics of words
+alphabet <- data.frame(letters)
+
+#How often each letter appears in that position
+first_position <- words %>% group_by(first_letter) %>% summarise(count(first_letter))
+second_position <- words %>% group_by(second_letter) %>% summarise(count(second_letter))
+third_position <- words %>% group_by(third_letter) %>% summarise(count(third_letter))
+fourth_position <- words %>% group_by(fourth_letter) %>% summarise(count(fourth_letter))
+fifth_position <- words %>% group_by(fifth_letter) %>% summarise(count(fifth_letter))
+
+#Renaming columns to join summaries
+colnames(first_position) <- c("letters","first")
+colnames(second_position) <- c("letters","second")
+colnames(third_position) <- c("letters","third")
+colnames(fourth_position) <- c("letters","fourth")
+colnames(fifth_position) <- c("letters","fifth")
+
+#Joining Summaries to one Data Frame
+positions <- first_position %>% full_join(second_position, by="letters") %>% 
+  full_join(third_position, by="letters") %>% 
+  full_join(fourth_position, by="letters") %>% 
+  full_join(fifth_position, by="letters")
+
+#Final Join and clean up
+alphabet <- alphabet %>% full_join(positions, by="letters") 
+alphabet <- alphabet %>% replace(is.na(.), 0)
+alphabet <- alphabet %>% rowwise() %>% mutate(total_appearances = sum(letters == words[,2:6])) 
+
+#Taking care of Double letters
+for (x in 1:26){
+alphabet[x,8] <- as.character(count(str_extract(words$original_word, as.character(alphabet[x,1]))))
+}
+
+colnames(alphabet)[8] <- "num_of_words"
+alphabet$num_of_words <- as.numeric(alphabet$num_of_words)
+alphabet <- alphabet %>% mutate(percent_in_word = 100*round(num_of_words/as.numeric(count(words)),4))                                
+```
+### Cleaning (Not shown because it looks scary)
+### Analyze
+```{r, echo=FALSE}
+datatable(alphabet)
+```
+
+```{r, echo=FALSE}
+#position probability
+alphabet <- alphabet %>% mutate(first_position = 100*round(first/as.numeric(count(words)),5),
+                    second_position = 100*round(second/as.numeric(count(words)),5),
+                    third_position = 100*round(third/as.numeric(count(words)),5),
+                    fourth_position = 100*round(fourth/as.numeric(count(words)),5),
+                    fifth_position = 100*round(fifth/as.numeric(count(words)),5)) 
+
+#reorder the dataframe
+alphabet <- alphabet[,c(1,8,9,7,2,10,3,11,4,12,5,13,6,14)]
+
+alphabet <- alphabet %>% mutate(double_letters = total_appearances - num_of_words)
+```
+
+```{r, echo=FALSE}
+one <- alphabet %>% select(letters, first_position)
+one$first_letter <- one$letters
+
+two <- alphabet %>% select(letters, second_position)
+two$second_letter <- two$letters
+
+three <- alphabet %>% select(letters,third_position)
+three$third_letter <- three$letters
+
+four <- alphabet %>% select(letters, fourth_position)
+four$fourth_letter <- four$letters
+
+five <- alphabet %>% select(letters, fifth_position)
+five$fifth_letter <- five$letters
+
+words_filtered <- words_filtered %>% left_join(one, by="first_letter") %>% select(-letters)
+words_filtered <- words_filtered %>% left_join(two, by="second_letter") %>% select(-letters)
+words_filtered <- words_filtered %>% left_join(three, by="third_letter") %>% select(-letters)
+words_filtered <- words_filtered %>% left_join(four, by="fourth_letter") %>% select(-letters)
+words_filtered <- words_filtered %>% left_join(five, by="fifth_letter") %>% select(-letters)
+
+words_filtered <- words_filtered  %>% rowwise() %>% 
+  mutate(total_propability = sum(first_position,second_position,third_position,fourth_position,fifth_position))
+
+words_filtered <- words_filtered %>% select(-c(first_position,second_position,third_position,fourth_position,fifth_position)) %>% ungroup()
+
+remaining_words <- words_filtered 
+```
+
+# Graphs (Results)
+```{r, echo=FALSE}
+ggplot(alphabet, aes(x=reorder(toupper(letters), -percent_in_word), y=percent_in_word))+
+  geom_col(fill="navy")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))+
+  ggtitle("How often does this letter show up in a word?")+
+  xlab("Letters")+
+  ylab("Percent")+
+  scale_y_continuous(breaks = seq(0, 50, 10))
+```
+```{r, echo=FALSE}
+ggplot(alphabet, aes(x=reorder(toupper(letters), -first), y=first_position))+
+  geom_col(fill="navy")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))+
+  ggtitle("What is the best guess for the first letter?")+
+  xlab("Letters")+
+  ylab("Percent")+
+  scale_y_continuous(breaks = seq(0, 50, 10))
+```
+```{r, echo=FALSE}
+ggplot(alphabet, aes(x=reorder(toupper(letters), -second), y=second_position))+
+  geom_col(fill="navy")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))+
+  ggtitle("What is the best guess for the second letter?")+
+  xlab("Letters")+
+  ylab("Percent")+
+  scale_y_continuous(breaks = seq(0, 50, 10))
+```
+```{r, echo=FALSE}
+ggplot(alphabet, aes(x=reorder(toupper(letters), -third), y=third_position))+
+  geom_col(fill="navy")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))+
+  ggtitle("What is the best guess for the third letter?")+
+  xlab("Letters")+
+  ylab("Percent")+
+  scale_y_continuous(breaks = seq(0, 50, 10))
+```
+```{r, echo=FALSE}
+ggplot(alphabet, aes(x=reorder(toupper(letters), -fourth), y=fourth_position))+
+  geom_col(fill="navy")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))+
+  ggtitle("What is the best guess for the fourth letter?")+
+  xlab("Letters")+
+  ylab("Percent")+
+  scale_y_continuous(breaks = seq(0, 50, 10))
+```
+```{r, echo=FALSE}
+ggplot(alphabet, aes(x=reorder(toupper(letters), -fifth), y=fifth_position))+
+  geom_col(fill="navy")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5))+
+  ggtitle("What is the best guess for the fifth letter?")+
+  xlab("Letters")+
+  ylab("Percent")+
+  scale_y_continuous(breaks = seq(0, 50, 10))
+```
+
+### Presentation of the Game
+```{r}
+guess <- ""
+correct <- ""
+
+##########################################################
+
+creating_dictionary <- function(guess,correct){
+  index <- 1:5
+  dictionary <- data.frame(index,guess,correct)
+  for (x in 1:5){
+    dictionary[x,2] <- substr(guess,x,x)
+    dictionary[x,3] <- substr(correct,x,x)
+  }
+  return(dictionary)
+}
+
+dictionary <- creating_dictionary(guess, correct)
+
+##########################################################
+
+remaining <- function(remaining_words,dictionary){
+  y = 1
+  for (x in 1:5){
+    
+    if(dictionary[x,3]==2){
+      remaining_words <- remaining_words %>% filter(remaining_words[,x+1] == dictionary[x,2])
+      y = y + 1
+    }
+    else if(dictionary[x,3]==1){
+      remaining_words <- remaining_words %>% filter(remaining_words[,x+1] != dictionary[x,2])
+      remaining_words <- remaining_words %>% filter(first_letter == dictionary[x,2] | second_letter == dictionary[x,2] |
+                                                  third_letter == dictionary[x,2] | fourth_letter == dictionary[x,2] |
+                                                  fifth_letter == dictionary[x,2])
+      y = y + 1
+    }
+    else{
+      for (x in 1:5){
+      remaining_words <- remaining_words %>% filter(remaining_words[,x+1] != dictionary[y,2])}
+      y = y + 1
+    }
+    
+  } #closing for loop
+  return(remaining_words)
+} #closing function
+```
+
+```{r, message = FALSE, warning = FALSE}
+## PLAY THE GAME HERE ####
+
+#Guessing space
+guess <- "curly"
+correct <- "02022"
+
+dictionary <- creating_dictionary(guess, correct)
+remaining_words <- remaining(remaining_words,dictionary)
+as.data.frame(remaining_words %>% arrange(-total_propability) %>% head(3) %>%  select(original_word)) %>% pander()
+```
+
+```{r, echo = FALSE, message = FALSE, warning= FALSE}
+# Check to see if word exists in dictionary
+#remaining_words %>% filter(original_word %in% "")
+
+#reset
+remaining_words <- words_filtered
+```
+
