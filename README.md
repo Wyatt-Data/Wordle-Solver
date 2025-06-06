@@ -20,11 +20,9 @@ This started with a `.txt` file of valid Wordle words and turned into a full R-b
 
 ## 📦 Included Files
 
-- `wordle_solver.Rmd`: R Markdown file containing all code and comments  
+- `Wordle.Rmd`: R Markdown file containing all code and comments  
 - `wordle_solver.html`: Knitted output with charts, letter placement, and probability visualizations  
-- `word_list.txt`: Word list accepted by Wordle (sourced online)  
-
-> **Note:** For detailed letter placement and probability visualizations, please view the `wordle_solver.html` file.
+- `wordle-La.txt`: Word list accepted by Wordle (sourced online)  
 
 ---
 
