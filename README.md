@@ -21,7 +21,7 @@ This started with a `.txt` file of valid Wordle words and turned into a full R-b
 ## 📦 Included Files
 
 - `Wordle.Rmd`: R Markdown file containing all code and comments  
-- `wordle_solver.html`: Knitted output with charts, letter placement, and probability visualizations  
+- [`wordle_solver.html`](https://wyatt-data.github.io/Wordle-Solver/Wordle.html): Knitted output with charts, letter placement, and probability visualizations
 - `wordle-La.txt`: Word list accepted by Wordle (sourced online)  
 
 ---
