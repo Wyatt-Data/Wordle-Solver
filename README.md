@@ -39,26 +39,6 @@ This started with a `.txt` file of valid Wordle words and turned into a full R-b
 
 The game runs using functions defined earlier in the notebook. The code block below is the **core logic**—it's all you need to interact with the solver.
 
-### Feedback Encoding
-
-Use the following numeric codes to represent Wordle’s feedback:
-
-- `0` = Gray (letter not in the word)  
-- `1` = Yellow (letter in the word but wrong position)  
-- `2` = Green (letter in the correct position)
-
-### Instructions
-
-- For your **first guess**, leave `guess` and `correct` empty. The solver will suggest an opening word.
-- After each guess in Wordle:
-  - Update `guess` with the word you entered  
-  - Update `correct` with a string representing feedback (e.g., `"01020"`)  
-- Rerun only this cell to get the next best guess
-- To **restart from scratch**, run the initialization cell below this code block to reset the word list
-
-> ⚠️ **Note**: This solver performs poorly on words with **double letters**.  
-> There’s a trick to handle those—I'll update this when I remember it.
-
 <details>
 <summary>🔧 Core Solver Code</summary>
 
@@ -81,6 +61,27 @@ as.data.frame(
     select(original_word)
 ) %>% pander()
 ```
+</details>
+
+### Feedback Encoding
+
+Use the following numeric codes to represent Wordle’s feedback:
+
+- `0` = Gray (letter not in the word)  
+- `1` = Yellow (letter in the word but wrong position)  
+- `2` = Green (letter in the correct position)
+
+### Instructions
+
+- For your **first guess**, leave `guess` and `correct` empty. The solver will suggest an opening word.
+- After each guess in Wordle:
+  - Update `guess` with the word you entered  
+  - Update `correct` with a string representing feedback (e.g., `"01020"`)  
+- Rerun only this cell to get the next best guess
+- To **restart from scratch**, run the initialization cell below this code block to reset the word list
+
+> ⚠️ **Note**: This solver performs poorly on words with **double letters**.  
+> There’s a trick to handle those—I'll update this when I remember it.
 
 ---
 
